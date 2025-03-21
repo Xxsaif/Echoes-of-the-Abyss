@@ -5,16 +5,21 @@ using UnityEngine;
 
 public class Weapon : MonoBehaviour
 {
-    private float startDeg = 0f;
-    private float endDeg = 90f;
+    private float startDegX = 0f;
+    private float endDegX = 90f;
+    private float startDegY = 0f;
+    private float endDegY = -25f;
     private float t = 0f;
-    private float swordDeg;
+    private float swordDegX;
+    private float swordDegY;
     private SwordState state;
     [SerializeField] private GameObject model;
     [SerializeField] private GameObject blade;
     private Collider bladeCollider;
     private float swingSpeed = 4f;
     [HideInInspector] public List<GameObject> enemiesHit;
+
+    [HideInInspector] public float damage = 50f;
     void Start()
     {
         state = SwordState.Up;
@@ -33,16 +38,20 @@ public class Weapon : MonoBehaviour
             t += swingSpeed * Time.deltaTime;
             Mathf.Clamp(t, 0f, 1f);
 
-            swordDeg = Mathf.Lerp(startDeg, endDeg, t);
-            model.transform.localRotation = Quaternion.Euler(swordDeg, model.transform.localRotation.y, model.transform.localRotation.z);
+            swordDegX = Mathf.Lerp(startDegX, endDegX, t);
+            swordDegY = Mathf.Lerp(startDegY, endDegY, t);
+            model.transform.localRotation = Quaternion.Euler(swordDegX, swordDegY, model.transform.localRotation.z);
+
         }
         if (state == SwordState.SwingUp)
         {
             t += swingSpeed * Time.deltaTime;
             Mathf.Clamp(t, 0f, 1f);
 
-            swordDeg = Mathf.Lerp(endDeg, startDeg, t);
-            model.transform.localRotation = Quaternion.Euler(swordDeg, model.transform.localRotation.y, model.transform.localRotation.z);
+            swordDegX = Mathf.Lerp(endDegX, startDegX, t);
+            swordDegY = Mathf.Lerp(endDegY, startDegY, t);
+            model.transform.localRotation = Quaternion.Euler(swordDegX, swordDegY, model.transform.localRotation.z);
+
         }
     }
 

@@ -5,19 +5,23 @@ using UnityEngine.EventSystems;
 
 public class PlayerController : MonoBehaviour
 {
-    private float moveSpeed = 5f;
+    private float moveSpeed;
+    private float walkSpeed = 5f;
+    private float runSpeed = 8f;
     [SerializeField] private LayerMask groundMask;
     private CharacterController controller;
     private bool grounded;
+    [HideInInspector] public bool falling;
     private float gravity = -30f;
     private float jumpHeight = 1.5f;
-    private float groundDistance = 0.4f;
+    private float groundDistance = 0.3f;
     [SerializeField] private Transform groundCheck;
     private Vector3 velocity;
     void Start()
     {
         controller = GetComponent<CharacterController>();
         grounded = true;
+        moveSpeed = walkSpeed;
     }
 
     
@@ -37,6 +41,14 @@ public class PlayerController : MonoBehaviour
 
         Vector3 move = transform.right * hInput + transform.forward * vInput;
         move.Normalize();
+        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.W) && !Input.GetKey(KeyCode.S))
+        {
+            moveSpeed = runSpeed;
+        }
+        if (Input.GetKeyUp(KeyCode.LeftShift) || Input.GetKey(KeyCode.S) || Input.GetKeyUp(KeyCode.W))
+        {
+            moveSpeed = walkSpeed;
+        }
         controller.Move(moveSpeed * Time.deltaTime * move);
         
 
@@ -44,7 +56,12 @@ public class PlayerController : MonoBehaviour
         {
             velocity.y = Mathf.Sqrt(-2f * jumpHeight * gravity);
         }
+
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+
+
+        falling = velocity.y < -3f && !grounded;
+        
     }
 }
