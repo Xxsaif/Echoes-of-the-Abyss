@@ -18,18 +18,22 @@ public class EnemyBehaviour : MonoBehaviour
     private bool attacking;
     private float damage = 15f;
 
+    [SerializeField] private Animator animator;
+
     void Start()
     {
         health = 200f;
         playerPosition = Vector3.zero;
 
         agent = GetComponent<NavMeshAgent>();
-        agent.isStopped = false;
+        agent.isStopped = true;
         agent.speed = moveSpeed;
         agent.SetDestination(Vector3.zero);
 
-        state = EnemyStates.Chasing;
+        state = EnemyStates.Idle;
         attacking = false;
+
+        
     }
     
     void Update()
@@ -41,24 +45,31 @@ public class EnemyBehaviour : MonoBehaviour
         }
         transform.LookAt(new Vector3(playerPosition.x, transform.position.y, playerPosition.z));
 
+        Debug.Log("InRange: " + (Vector3.Distance(transform.position, playerPosition) <= agent.stoppingDistance).ToString() + ", IsAttack: "  + animator.GetCurrentAnimatorStateInfo(0).IsName("zombie_attack").ToString() + ", " + animator.GetCurrentAnimatorStateInfo(0).normalizedTime);
         if (Vector3.Distance(transform.position, playerPosition) <= agent.stoppingDistance)
         {
             Stop();
             state = EnemyStates.Attacking;
         }
-        else if (agent.isStopped == true)
+        else
         {
-            Move();
-            state = EnemyStates.Chasing;
             CancelInvoke();
-            attacking = false;
+            if (agent.isStopped == true && (animator.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1f || animator.GetCurrentAnimatorStateInfo(0).normalizedTime == 0f))
+            {
+                Move();
+                state = EnemyStates.Walking;
+                WalkAni();
+                attacking = false;
+            }
         }
+        
 
-        if (state == EnemyStates.Attacking)
+        if (state == EnemyStates.Attacking && agent.isStopped == true)
         {
             if (!attacking)
             {
-                Invoke(nameof(Attack), 0.65f);
+                Invoke(nameof(Attack), 2.63f);
+                AttackAni();
                 attacking = true;
             }
         }
@@ -97,11 +108,42 @@ public class EnemyBehaviour : MonoBehaviour
         player.GetComponent<PlayerHealth>().TakeDamage(damage);
         attacking = false;
     }
+    
+    private void IdleAni()
+    {
+        animator.SetBool("Walking", false);
+        animator.SetBool("Running", false);
+    }
+    private void WalkAni()
+    {
+        animator.SetBool("Walking", true);
+        animator.SetBool("Running", false);
+    }
+
+    private void RunAni()
+    {
+        animator.SetBool("Walking", false);
+        animator.SetBool("Running", true);
+
+    }
+
+    private void AttackAni()
+    {
+        //IdleAni();
+        animator.SetBool("Walking", false);
+        animator.SetBool("Running", false);
+        animator.SetTrigger("zombieAttack");
+
+    }
 
     private enum EnemyStates
     {
-        Chasing,
-        Attacking
+        Idle,
+        Walking,
+        Running,
+        Attacking,
+        Dying,
+        Dead
     }
    
 }
